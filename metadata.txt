@@ -6,30 +6,33 @@
 name=Quick_search
 qgisMinimumVersion=3.0
 description=Quick_search
-version=1.1
+version=1.2
 author=Sakal Mykhailo
 email=53861tmmb@gmail.com
 
 about=The plugin is used to quickly search for objects in your project.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/Sakal24/quick_search/issues
+repository=https://github.com/Bohdan2505/UA_MBD_TOOLS.git
 # End of mandatory metadata
 
 # Recommended items:
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog= 
+ Version 1.2:
+ * Додали сортування об'єктів для фільтрів.
+ * Виправлено чутливість пошуку до регістру.
 
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=http://homepage
+homepage=https://github.com/Sakal24/quick_search.git
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=false
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

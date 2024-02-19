@@ -101,10 +101,14 @@ class SearchFeaturesDialog(QDialog):
         selected_field1_alias = self.field1_combo.currentText()
         selected_field2 = self.field2_combo.currentData().name()
         selected_field2_alias = self.field2_combo.currentText()
+        
+    # Перетворення тексту фільтрів та значень полів до нижнього регістру
+        search_text1 = self.search_value1_input.text().lower()
+        search_text2 = self.search_value2_input.text().lower()
 
     # Побудова запиту на об'єкти з вказаними умовами
-        expression1 = f"{selected_field1} LIKE '%{self.search_value1_input.text()}%'"
-        expression2 = f"{selected_field2} LIKE '%{self.search_value2_input.text()}%'"
+        expression1 = f"lower({selected_field1}) LIKE '%{search_text1}%'"
+        expression2 = f"lower({selected_field2}) LIKE '%{search_text2}%'"
 
     # Використовуйте AND для об'єднання двох умов
         request = QgsFeatureRequest().setFilterExpression(f"{expression1} AND {expression2}")
@@ -112,14 +116,17 @@ class SearchFeaturesDialog(QDialog):
     # Вибірка об'єктів, які відповідають умовам
         features = [f for f in layer.getFeatures(request)]
 
+    # Сортування об'єктів спочатку за полем selected_field1, а потім за selected_field2
+        features_sorted = sorted(features, key=lambda x: (x[selected_field1], x[selected_field2]))
+    
     # Очищення вмісту QListWidget
         self.result_list.clear()
 
     # Додавання знайдених об'єктів до QListWidget з підписами
-        for feature in features:
+        for feature in features_sorted:
             custom_item = CustomListWidgetItem(feature, selected_field1_alias, selected_field2_alias)
             self.result_list.addItem(custom_item)
-
+            
     def show_feature_on_map(self, item):
         # Отримання об'єкта з віджету
         feature = item.feature
