@@ -1,4 +1,4 @@
-from qgis.core import QgsFeatureRequest, QgsPointXY
+from qgis.core import QgsFeatureRequest, QgsPointXY, QgsExpression
 from PyQt5.QtWidgets import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QGroupBox
 from qgis.gui import QgsMapLayerComboBox
 from qgis.utils import iface 
@@ -107,14 +107,13 @@ class SearchFeaturesDialog(QDialog):
         search_text2 = self.search_value2_input.text().lower()
 
     # Побудова запиту на об'єкти з вказаними умовами
-        expression1 = f"lower({selected_field1}) LIKE '%{search_text1}%'"
-        expression2 = f"lower({selected_field2}) LIKE '%{search_text2}%'"
-
-    # Використовуйте AND для об'єднання двох умов
-        request = QgsFeatureRequest().setFilterExpression(f"{expression1} AND {expression2}")
-
-    # Вибірка об'єктів, які відповідають умовам
-        features = [f for f in layer.getFeatures(request)]
+        if search_text2:
+            expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\' AND "{selected_field2}" ILIKE \'%{search_text2}%\''
+        else:
+            expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\''
+        
+        # Вибірка об'єктів, які відповідають умовам
+        features = [f for f in layer.getFeatures(QgsFeatureRequest().setFilterExpression(expression_str))]
 
     # Сортування об'єктів спочатку за полем selected_field1, а потім за selected_field2
         features_sorted = sorted(features, key=lambda x: (x[selected_field1], x[selected_field2]))

@@ -21,9 +21,11 @@ repository=https://github.com/Bohdan2505/UA_MBD_TOOLS.git
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 # changelog= 
+ Version 1.3:
+ Fixed errors with search
  Version 1.2:
- * Додали сортування об'єктів для фільтрів.
- * Виправлено чутливість пошуку до регістру.
+ * Added sorting of objects for filters.
+ * Fixed search sensitivity to case.
 
 # Tags are comma separated with spaces allowed
 tags=python
