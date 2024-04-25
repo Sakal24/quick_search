@@ -6,7 +6,7 @@
 name=Quick_search
 qgisMinimumVersion=3.0
 description=Quick_search
-version=1.2
+version=1.3
 author=Sakal Mykhailo
 email=53861tmmb@gmail.com
 
