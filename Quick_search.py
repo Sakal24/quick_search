@@ -21,9 +21,9 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QDockWidget
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -32,12 +32,9 @@ from .code import SearchFeaturesDialog
 
 import os.path
 
-
 from qgis.core import QgsFeatureRequest, QgsPointXY
-from qgis.PyQt.QtWidgets  import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel
+from qgis.PyQt.QtWidgets import QVBoxLayout, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel
 from qgis.gui import QgsMapLayerComboBox
-
-
 
 
 class Quick_search:
@@ -51,26 +48,12 @@ class Quick_search:
             application at run time.
         :type iface: QgsInterface
         """
-        # Save reference to the QGIS interface
         self.iface = iface
-        # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         self.menu = u'Quick_search'
-
-        # Declare instance attributes
         self.actions = []
-
-
-        # Check if plugin was started the first time in current QGIS session
-        # Must be set in initGui() to survive plugin reloads
         self.first_start = None
-        
-        
-        
-
-    # noinspection PyMethodMayBeStatic
-
-
+        self.dock_widget = None  # Зберігаємо посилання на докове вікно
 
     def add_action(
         self,
@@ -83,45 +66,8 @@ class Quick_search:
         status_tip=None,
         whats_this=None,
         parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
-
+        """Add a toolbar icon to the toolbar."""
+        
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
@@ -134,13 +80,10 @@ class Quick_search:
             action.setWhatsThis(whats_this)
 
         if add_to_toolbar:
-            # Adds plugin icon to Plugins toolbar
             self.iface.addToolBarIcon(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            self.iface.addPluginToMenu(self.menu, action)
 
         self.actions.append(action)
 
@@ -156,38 +99,33 @@ class Quick_search:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-        # will be set False in run()
         self.first_start = True
-        
-        
-        
-    
-
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginMenu(
-                u'&Quick_search',
-                action)
+            self.iface.removePluginMenu(u'&Quick_search', action)
             self.iface.removeToolBarIcon(action)
 
+        # Видаляємо докове вікно при вимкненні плагіна
+        if self.dock_widget:
+            self.iface.removeDockWidget(self.dock_widget)
 
     def run(self):
         """Run method that performs all the real work"""
 
-        # Create the dialog with elements (after translation) and keep reference
-        # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
+        if self.first_start:
             self.first_start = False
+            
+            # Створюємо доковане вікно
+            self.dock_widget = QDockWidget("Quick_search", self.iface.mainWindow())
+            self.dock_widget.setObjectName("Quick_searchDockWidget")
+            
+            # Створюємо інтерфейс у докованому вікні
             self.dlg = SearchFeaturesDialog()
+            self.dock_widget.setWidget(self.dlg)
+            
+            # Додаємо доковане вікно до QGIS
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
 
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+        self.dock_widget.show()
