@@ -1,7 +1,8 @@
 from qgis.core import QgsFeatureRequest, QgsPointXY, QgsExpression
-from PyQt5.QtWidgets import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QGroupBox
+from PyQt5.QtWidgets import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QGroupBox, QSizePolicy
 from qgis.gui import QgsMapLayerComboBox
-from qgis.utils import iface 
+from qgis.utils import iface
+from PyQt5.QtCore import QCoreApplication  # Імпорт QCoreApplication
 
 
 class CustomListWidgetItem(QListWidgetItem):
@@ -19,12 +20,16 @@ class SearchFeaturesDialog(QDialog):
     def __init__(self, parent=None):
         super(SearchFeaturesDialog, self).__init__(parent)
 
-        self.setWindowTitle("Пошук об'єктів")
+        self.setWindowTitle(QCoreApplication.translate("SearchFeaturesDialog", "Пошук об'єктів"))  # Локалізація заголовка
 
         layout = QVBoxLayout(self)
 
+        # Встановлюємо фіксований мінімальний та максимальний розмір діалогового вікна
+        self.setMinimumWidth(200)
+        self.setMaximumWidth(800)
+
         # Вибір шару
-        layer_groupbox = QGroupBox("Виберіть шар")
+        layer_groupbox = QGroupBox(QCoreApplication.translate("SearchFeaturesDialog", "Виберіть шар"))
         layer_layout = QVBoxLayout(layer_groupbox)
 
         self.layer_combo = QgsMapLayerComboBox(self)
@@ -33,7 +38,7 @@ class SearchFeaturesDialog(QDialog):
         layout.addWidget(layer_groupbox)
 
         # Фільтр 1
-        filter1_groupbox = QGroupBox("Фільтр 1")
+        filter1_groupbox = QGroupBox(QCoreApplication.translate("SearchFeaturesDialog", "Фільтр 1"))
         filter1_layout = QVBoxLayout(filter1_groupbox)
 
         self.field1_combo = QComboBox(self)
@@ -45,7 +50,7 @@ class SearchFeaturesDialog(QDialog):
         layout.addWidget(filter1_groupbox)
 
         # Фільтр 2
-        filter2_groupbox = QGroupBox("Фільтр 2")
+        filter2_groupbox = QGroupBox(QCoreApplication.translate("SearchFeaturesDialog", "Фільтр 2"))
         filter2_layout = QVBoxLayout(filter2_groupbox)
 
         self.field2_combo = QComboBox(self)
@@ -56,7 +61,8 @@ class SearchFeaturesDialog(QDialog):
 
         layout.addWidget(filter2_groupbox)
 
-        self.search_button = QPushButton("Пошук", self)
+        self.search_button = QPushButton(QCoreApplication.translate("SearchFeaturesDialog", "Пошук"))  # Локалізація кнопки
+        self.search_button.setDefault(True)  # Прив'язати кнопку до натискання Enter
         self.search_button.clicked.connect(self.search_features)
         layout.addWidget(self.search_button)
 
@@ -73,6 +79,7 @@ class SearchFeaturesDialog(QDialog):
 
         # Підключення сигналу для оновлення поля вибору при зміні поточного шару
         self.layer_combo.currentIndexChanged.connect(self.update_field_combos)
+
         
     def update_field_combos(self):
         # Отримання поточного вибраного шару
@@ -90,38 +97,49 @@ class SearchFeaturesDialog(QDialog):
                 self.field2_combo.addItem(field.displayName(), field)
 
     def search_features(self):
-    # Отримання поточного вибраного шару з QgsMapLayerComboBox
+        # Отримання поточного вибраного шару з QgsMapLayerComboBox
         layer = self.layer_combo.currentLayer()
         if not layer:
-            print("Шар не вибрано.")
+            print(QCoreApplication.translate("SearchFeaturesDialog", "Шар не вибрано."))
             return
 
-    # Отримання поточно вибраних полів з QComboBox
+        # Отримання поточно вибраних полів з QComboBox
         selected_field1 = self.field1_combo.currentData().name()
         selected_field1_alias = self.field1_combo.currentText()
         selected_field2 = self.field2_combo.currentData().name()
         selected_field2_alias = self.field2_combo.currentText()
-        
-    # Перетворення тексту фільтрів та значень полів до нижнього регістру
+
+        # Перетворення тексту фільтрів та значень полів до нижнього регістру
         search_text1 = self.search_value1_input.text().lower()
         search_text2 = self.search_value2_input.text().lower()
 
-    # Побудова запиту на об'єкти з вказаними умовами
+        print(f"Пошук за полями: {selected_field1}, {selected_field2}")
+        print(f"Тексти фільтрів: {search_text1}, {search_text2}")
+
+        # Побудова запиту на об'єкти з вказаними умовами
         if search_text2:
             expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\' AND "{selected_field2}" ILIKE \'%{search_text2}%\''
         else:
             expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\''
+
+        print(f"Пошуковий запит: {expression_str}")
         
         # Вибірка об'єктів, які відповідають умовам
         features = [f for f in layer.getFeatures(QgsFeatureRequest().setFilterExpression(expression_str))]
 
-    # Сортування об'єктів спочатку за полем selected_field1, а потім за selected_field2
+        if not features:
+            print(QCoreApplication.translate("SearchFeaturesDialog", "Об'єкти не знайдено."))
+            return
+
+        print(f"Знайдено об'єктів: {len(features)}")
+
+        # Сортування об'єктів спочатку за полем selected_field1, а потім за selected_field2
         features_sorted = sorted(features, key=lambda x: (x[selected_field1], x[selected_field2]))
-    
-    # Очищення вмісту QListWidget
+
+        # Очищення вмісту QListWidget
         self.result_list.clear()
 
-    # Додавання знайдених об'єктів до QListWidget з підписами
+        # Додавання знайдених об'єктів до QListWidget з підписами
         for feature in features_sorted:
             custom_item = CustomListWidgetItem(feature, selected_field1_alias, selected_field2_alias)
             self.result_list.addItem(custom_item)
@@ -140,10 +158,9 @@ class SearchFeaturesDialog(QDialog):
             map_canvas = iface.mapCanvas()
             map_canvas.setCenter(QgsPointXY(feature.geometry().centroid().asPoint()))
             map_canvas.zoomScale(1500)
+
         # Відображення інформації про вибраний об'єкт у QLabel
         selected_field1 = self.field1_combo.currentText()
         selected_field2 = self.field2_combo.currentText()
         label_text = f"Вибраний об'єкт: {feature.attribute(selected_field1)}, {feature.attribute(selected_field2)}"
         self.selected_object_label.setText(label_text)
-
-

@@ -6,7 +6,7 @@
 name=Quick_search
 qgisMinimumVersion=3.0
 description=Quick_search
-version=1.4
+version=1.4.1
 author=Sakal Mykhailo
 email=53861tmmb@gmail.com
 
@@ -22,6 +22,8 @@ hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 # changelog= 
 changelog=
+ Version 1.4.1:
+ *Fixed bug, latest version and added localization
  Version 1.4:
  *The Quick_search window can now be docked to the QGIS panel
  Version 1.3:
