@@ -80,6 +80,9 @@ class SearchFeaturesDialog(QDialog):
         # Підключення сигналу для оновлення поля вибору при зміні поточного шару
         self.layer_combo.currentIndexChanged.connect(self.update_field_combos)
 
+        # Додаємо обробник натискання клавіші Enter для обох полів введення
+        self.search_value1_input.returnPressed.connect(self.search_features)
+        self.search_value2_input.returnPressed.connect(self.search_features)
         
     def update_field_combos(self):
         # Отримання поточного вибраного шару
@@ -103,47 +106,48 @@ class SearchFeaturesDialog(QDialog):
             print(QCoreApplication.translate("SearchFeaturesDialog", "Шар не вибрано."))
             return
 
+        # Очищення вмісту QListWidget перед новим пошуком
+        self.result_list.clear()
+    
         # Отримання поточно вибраних полів з QComboBox
         selected_field1 = self.field1_combo.currentData().name()
         selected_field1_alias = self.field1_combo.currentText()
         selected_field2 = self.field2_combo.currentData().name()
         selected_field2_alias = self.field2_combo.currentText()
-
+    
         # Перетворення тексту фільтрів та значень полів до нижнього регістру
         search_text1 = self.search_value1_input.text().lower()
         search_text2 = self.search_value2_input.text().lower()
-
+    
         print(f"Пошук за полями: {selected_field1}, {selected_field2}")
         print(f"Тексти фільтрів: {search_text1}, {search_text2}")
-
+    
         # Побудова запиту на об'єкти з вказаними умовами
         if search_text2:
             expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\' AND "{selected_field2}" ILIKE \'%{search_text2}%\''
         else:
             expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\''
-
+    
         print(f"Пошуковий запит: {expression_str}")
         
         # Вибірка об'єктів, які відповідають умовам
         features = [f for f in layer.getFeatures(QgsFeatureRequest().setFilterExpression(expression_str))]
-
+    
+        # Якщо об'єкти не знайдено, виводимо повідомлення і не додаємо нічого до списку
         if not features:
             print(QCoreApplication.translate("SearchFeaturesDialog", "Об'єкти не знайдено."))
             return
-
+    
         print(f"Знайдено об'єктів: {len(features)}")
-
+    
         # Сортування об'єктів спочатку за полем selected_field1, а потім за selected_field2
         features_sorted = sorted(features, key=lambda x: (x[selected_field1], x[selected_field2]))
-
-        # Очищення вмісту QListWidget
-        self.result_list.clear()
-
+    
         # Додавання знайдених об'єктів до QListWidget з підписами
         for feature in features_sorted:
             custom_item = CustomListWidgetItem(feature, selected_field1_alias, selected_field2_alias)
             self.result_list.addItem(custom_item)
-            
+
     def show_feature_on_map(self, item):
         # Отримання об'єкта з віджету
         feature = item.feature
@@ -164,3 +168,4 @@ class SearchFeaturesDialog(QDialog):
         selected_field2 = self.field2_combo.currentText()
         label_text = f"Вибраний об'єкт: {feature.attribute(selected_field1)}, {feature.attribute(selected_field2)}"
         self.selected_object_label.setText(label_text)
+
