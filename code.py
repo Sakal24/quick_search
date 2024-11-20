@@ -1,4 +1,4 @@
-from qgis.core import QgsFeatureRequest, QgsPointXY, QgsExpression
+from qgis.core import QgsFeatureRequest, QgsPointXY, QgsExpression, QgsMapLayerProxyModel
 from PyQt5.QtWidgets import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QGroupBox, QSizePolicy
 from qgis.gui import QgsMapLayerComboBox
 from qgis.utils import iface
@@ -20,49 +20,41 @@ class SearchFeaturesDialog(QDialog):
     def __init__(self, parent=None):
         super(SearchFeaturesDialog, self).__init__(parent)
 
-        self.setWindowTitle(QCoreApplication.translate("SearchFeaturesDialog", "Пошук об'єктів"))  # Локалізація заголовка
+        self.setWindowTitle(QCoreApplication.translate("SearchFeaturesDialog", "Пошук об'єктів"))
 
         layout = QVBoxLayout(self)
 
-        # Встановлюємо фіксований мінімальний та максимальний розмір діалогового вікна
         self.setMinimumWidth(200)
         self.setMaximumWidth(800)
 
         # Вибір шару
         layer_groupbox = QGroupBox(QCoreApplication.translate("SearchFeaturesDialog", "Виберіть шар"))
         layer_layout = QVBoxLayout(layer_groupbox)
-
         self.layer_combo = QgsMapLayerComboBox(self)
+        self.layer_combo.setFilters(QgsMapLayerProxyModel.VectorLayer)
         layer_layout.addWidget(self.layer_combo)
-
         layout.addWidget(layer_groupbox)
 
         # Фільтр 1
         filter1_groupbox = QGroupBox(QCoreApplication.translate("SearchFeaturesDialog", "Фільтр 1"))
         filter1_layout = QVBoxLayout(filter1_groupbox)
-
         self.field1_combo = QComboBox(self)
         filter1_layout.addWidget(self.field1_combo)
-
         self.search_value1_input = QLineEdit(self)
         filter1_layout.addWidget(self.search_value1_input)
-
         layout.addWidget(filter1_groupbox)
 
         # Фільтр 2
         filter2_groupbox = QGroupBox(QCoreApplication.translate("SearchFeaturesDialog", "Фільтр 2"))
         filter2_layout = QVBoxLayout(filter2_groupbox)
-
         self.field2_combo = QComboBox(self)
         filter2_layout.addWidget(self.field2_combo)
-
         self.search_value2_input = QLineEdit(self)
         filter2_layout.addWidget(self.search_value2_input)
-
         layout.addWidget(filter2_groupbox)
 
-        self.search_button = QPushButton(QCoreApplication.translate("SearchFeaturesDialog", "Пошук"))  # Локалізація кнопки
-        self.search_button.setDefault(True)  # Прив'язати кнопку до натискання Enter
+        self.search_button = QPushButton(QCoreApplication.translate("SearchFeaturesDialog", "Пошук"))
+        self.search_button.setDefault(True)
         self.search_button.clicked.connect(self.search_features)
         layout.addWidget(self.search_button)
 
@@ -83,6 +75,18 @@ class SearchFeaturesDialog(QDialog):
         # Додаємо обробник натискання клавіші Enter для обох полів введення
         self.search_value1_input.returnPressed.connect(self.search_features)
         self.search_value2_input.returnPressed.connect(self.search_features)
+
+        # Вибір поточного шару при відкритті плагіна
+        self.set_current_layer()
+
+    def set_current_layer(self):
+        # Отримання поточного активного шару
+        current_layer = iface.activeLayer()
+        if current_layer:
+            # Встановлення поточного шару в QgsMapLayerComboBox
+            self.layer_combo.setLayer(current_layer)
+            # Оновлення полів після вибору шару
+            self.update_field_combos()
         
     def update_field_combos(self):
         # Отримання поточного вибраного шару
