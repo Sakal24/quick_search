@@ -1,8 +1,8 @@
 from qgis.core import QgsFeatureRequest, QgsPointXY, QgsExpression, QgsMapLayerProxyModel
-from PyQt5.QtWidgets import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QGroupBox, QSizePolicy
+from PyQt5.QtWidgets import QVBoxLayout, QDialog, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QGroupBox, QHBoxLayout
 from qgis.gui import QgsMapLayerComboBox
 from qgis.utils import iface
-from PyQt5.QtCore import QCoreApplication  # Імпорт QCoreApplication
+from PyQt5.QtCore import QCoreApplication
 
 
 class CustomListWidgetItem(QListWidgetItem):
@@ -16,8 +16,9 @@ class CustomListWidgetItem(QListWidgetItem):
         # Підписати об'єкт у QListWidget
         self.setText(f"{feature.attribute(selected_field1)}, {feature.attribute(selected_field2)}")
 
+
 class SearchFeaturesDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, is_additional=False):
         super(SearchFeaturesDialog, self).__init__(parent)
 
         self.setWindowTitle(QCoreApplication.translate("SearchFeaturesDialog", "Пошук об'єктів"))
@@ -53,10 +54,19 @@ class SearchFeaturesDialog(QDialog):
         filter2_layout.addWidget(self.search_value2_input)
         layout.addWidget(filter2_groupbox)
 
+        # Горизонтальний контейнер для кнопок "Пошук" і "Додатковий пошук"
+        button_layout = QHBoxLayout()
         self.search_button = QPushButton(QCoreApplication.translate("SearchFeaturesDialog", "Пошук"))
         self.search_button.setDefault(True)
         self.search_button.clicked.connect(self.search_features)
-        layout.addWidget(self.search_button)
+        button_layout.addWidget(self.search_button)
+
+        # Маленька кнопка "Додатковий пошук" або "Закрити додатковий пошук"
+        self.open_additional_search_button = QPushButton("+")
+        self.open_additional_search_button.setFixedWidth(30)  # Маленька ширина
+        button_layout.addWidget(self.open_additional_search_button)
+
+        layout.addLayout(button_layout)
 
         # Додано віджет QListWidget для відображення результатів
         self.result_list = QListWidget(self)
@@ -79,6 +89,13 @@ class SearchFeaturesDialog(QDialog):
         # Вибір поточного шару при відкритті плагіна
         self.set_current_layer()
 
+        # Чи це додаткове вікно
+        self.is_additional = is_additional
+
+        # Якщо це додаткове вікно, приховуємо кнопку "+"
+        if self.is_additional:
+            self.open_additional_search_button.setVisible(False)
+
     def set_current_layer(self):
         # Отримання поточного активного шару
         current_layer = iface.activeLayer()
@@ -87,7 +104,7 @@ class SearchFeaturesDialog(QDialog):
             self.layer_combo.setLayer(current_layer)
             # Оновлення полів після вибору шару
             self.update_field_combos()
-        
+
     def update_field_combos(self):
         # Отримання поточного вибраного шару
         layer = self.layer_combo.currentLayer()
@@ -109,7 +126,7 @@ class SearchFeaturesDialog(QDialog):
         if not layer:
             print(QCoreApplication.translate("SearchFeaturesDialog", "Шар не вибрано."))
             return
-
+    
         # Очищення вмісту QListWidget перед новим пошуком
         self.result_list.clear()
     
@@ -123,6 +140,10 @@ class SearchFeaturesDialog(QDialog):
         search_text1 = self.search_value1_input.text().lower()
         search_text2 = self.search_value2_input.text().lower()
     
+        # Екранування символу ' у пошуковому тексті
+        search_text1 = search_text1.replace("'", "''")
+        search_text2 = search_text2.replace("'", "''")
+    
         print(f"Пошук за полями: {selected_field1}, {selected_field2}")
         print(f"Тексти фільтрів: {search_text1}, {search_text2}")
     
@@ -133,7 +154,7 @@ class SearchFeaturesDialog(QDialog):
             expression_str = f'"{selected_field1}" ILIKE \'%{search_text1}%\''
     
         print(f"Пошуковий запит: {expression_str}")
-        
+    
         # Вибірка об'єктів, які відповідають умовам
         features = [f for f in layer.getFeatures(QgsFeatureRequest().setFilterExpression(expression_str))]
     
@@ -172,4 +193,3 @@ class SearchFeaturesDialog(QDialog):
         selected_field2 = self.field2_combo.currentText()
         label_text = f"Вибраний об'єкт: {feature.attribute(selected_field1)}, {feature.attribute(selected_field2)}"
         self.selected_object_label.setText(label_text)
-

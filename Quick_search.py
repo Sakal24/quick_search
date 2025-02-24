@@ -23,7 +23,7 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QDockWidget
+from qgis.PyQt.QtWidgets import QAction, QDockWidget, QVBoxLayout, QPushButton
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -33,7 +33,7 @@ from .code import SearchFeaturesDialog
 import os.path
 
 from qgis.core import QgsFeatureRequest, QgsPointXY
-from qgis.PyQt.QtWidgets import QVBoxLayout, QPushButton, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel
+from qgis.PyQt.QtWidgets import QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel
 from qgis.gui import QgsMapLayerComboBox
 
 
@@ -53,7 +53,8 @@ class Quick_search:
         self.menu = u'Quick_search'
         self.actions = []
         self.first_start = None
-        self.dock_widget = None  # Зберігаємо посилання на докове вікно
+        self.dock_widget = None  # Зберігаємо посилання на головне докове вікно
+        self.additional_dock_widget = None  # Зберігаємо посилання на додаткове докове вікно
 
     def add_action(
         self,
@@ -107,9 +108,11 @@ class Quick_search:
             self.iface.removePluginMenu(u'&Quick_search', action)
             self.iface.removeToolBarIcon(action)
 
-        # Видаляємо докове вікно при вимкненні плагіна
+        # Видаляємо докові вікна при вимкненні плагіна
         if self.dock_widget:
             self.iface.removeDockWidget(self.dock_widget)
+        if self.additional_dock_widget:
+            self.iface.removeDockWidget(self.additional_dock_widget)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -117,15 +120,41 @@ class Quick_search:
         if self.first_start:
             self.first_start = False
             
-            # Створюємо доковане вікно
+            # Створюємо головне докове вікно
             self.dock_widget = QDockWidget("Quick_search", self.iface.mainWindow())
             self.dock_widget.setObjectName("Quick_searchDockWidget")
             
-            # Створюємо інтерфейс у докованому вікні
+            # Створюємо інтерфейс у головному докованому вікні
             self.dlg = SearchFeaturesDialog()
             self.dock_widget.setWidget(self.dlg)
             
-            # Додаємо доковане вікно до QGIS
+            # Додаємо головне докове вікно до QGIS
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
 
+            # Підключаємо кнопку "+" до методу відкриття додаткового вікна
+            self.dlg.open_additional_search_button.clicked.connect(self.toggle_additional_search)
+
         self.dock_widget.show()
+
+    def toggle_additional_search(self):
+        """Відкриває або закриває додаткове докове вікно"""
+        if self.additional_dock_widget is None or not self.additional_dock_widget.isVisible():
+            # Створюємо додаткове докове вікно
+            self.additional_dock_widget = QDockWidget("Додатковий пошук", self.iface.mainWindow())
+            self.additional_dock_widget.setObjectName("AdditionalSearchDockWidget")
+            
+            # Створюємо інтерфейс у додатковому докованому вікні
+            additional_dlg = SearchFeaturesDialog(is_additional=True)
+            self.additional_dock_widget.setWidget(additional_dlg)
+            
+            # Додаємо додаткове докове вікно до QGIS
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.additional_dock_widget)
+
+            # Змінюємо кнопку "+" на "-" у головному вікні
+            self.dlg.open_additional_search_button.setText("-")
+        else:
+            # Закриваємо додаткове вікно
+            self.additional_dock_widget.close()
+            self.additional_dock_widget = None
+            # Змінюємо кнопку "-" на "+" у головному вікні
+            self.dlg.open_additional_search_button.setText("+")
