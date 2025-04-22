@@ -6,8 +6,8 @@
 name=Quick_search
 qgisMinimumVersion=3.0
 description=Quick_search
-version=1.5
-author=Sakal Mykhailo
+version=1.5.1
+author=Sakal Mykhailo and Tretiak Volodymyr
 email=53861tmmb@gmail.com
 
 about=The plugin is used to quickly search for objects in your project.
@@ -22,6 +22,8 @@ hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 # changelog= 
 changelog=
+ Version 1.5.1:
+ *Added English localization.
  Version 1.5:
  *An additional search box has been added, now you can search on two layers at once, just use the "+" button. Also, additional search can be moved to any place.
  Version 1.4.3:
@@ -30,7 +32,7 @@ changelog=
  Version 1.4.2:
  *Fixed a problem with pressing Enter and searching for objects
  Version 1.4.1:
- *Fixed bug, latest version and added localization
+ *Fixed bug.
  Version 1.4:
  *The Quick_search window can now be docked to the QGIS panel
  Version 1.3:

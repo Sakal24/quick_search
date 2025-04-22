@@ -21,20 +21,17 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QDockWidget, QVBoxLayout, QPushButton
+from qgis.PyQt.QtWidgets import QAction, QDockWidget
 
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
-from .code import SearchFeaturesDialog
+from .code import *
 
 import os.path
 
-from qgis.core import QgsFeatureRequest, QgsPointXY
-from qgis.PyQt.QtWidgets import QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel
-from qgis.gui import QgsMapLayerComboBox
 
 
 class Quick_search:
@@ -42,7 +39,6 @@ class Quick_search:
 
     def __init__(self, iface):
         """Constructor.
-
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
             application at run time.
@@ -55,6 +51,7 @@ class Quick_search:
         self.first_start = None
         self.dock_widget = None  # Зберігаємо посилання на головне докове вікно
         self.additional_dock_widget = None  # Зберігаємо посилання на додаткове докове вікно
+
 
     def add_action(
         self,
@@ -89,14 +86,17 @@ class Quick_search:
         self.actions.append(action)
 
         return action
+    
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/Quick_search/icon.png'
+        plugin_dir = os.path.dirname(__file__)
+        icon_path = os.path.join(plugin_dir, "icons", "icon.png")
+
         self.add_action(
             icon_path,
-            text=u'Quick_search',
+            text=u'Quick search',
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -140,7 +140,7 @@ class Quick_search:
         """Відкриває або закриває додаткове докове вікно"""
         if self.additional_dock_widget is None or not self.additional_dock_widget.isVisible():
             # Створюємо додаткове докове вікно
-            self.additional_dock_widget = QDockWidget("Додатковий пошук", self.iface.mainWindow())
+            self.additional_dock_widget = QDockWidget(tr("Додатковий пошук"), self.iface.mainWindow())
             self.additional_dock_widget.setObjectName("AdditionalSearchDockWidget")
             
             # Створюємо інтерфейс у додатковому докованому вікні
