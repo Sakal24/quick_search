@@ -6,9 +6,14 @@
 """
 
 import sys
+import os
 import getpass
 import xmlrpc.client
 from optparse import OptionParser
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'vendor'))
+import defusedxml.xmlrpc
+defusedxml.xmlrpc.monkey_patch()
 
 standard_library.install_aliases()
 

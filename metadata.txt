@@ -6,7 +6,7 @@
 name=Quick_search
 qgisMinimumVersion=3.0
 description=Quick_search
-version=1.5.1
+version=1.7
 author=Sakal Mykhailo and Tretiak Volodymyr
 email=53861tmmb@gmail.com
 
@@ -22,6 +22,14 @@ hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 # changelog= 
 changelog=
+ Version 1.7:
+ *The number of filter fields is now dynamic: 2 by default, up to 5 can be added or removed via dedicated buttons.
+ *Added a result counter showing the number of found objects.
+ *Added a button to open the additional search panel.
+ *Fixed zoom to feature: now correctly transforms coordinates to the project CRS.
+ *Fixed incorrect label text when selecting a feature from the results list.
+ Version 1.6:
+ *Added a button to open the Feature Form directly from each search result.
  Version 1.5.1:
  *Added English localization.
  Version 1.5:

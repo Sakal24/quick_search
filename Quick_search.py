@@ -27,8 +27,7 @@ from qgis.PyQt.QtWidgets import QAction, QDockWidget
 
 # Initialize Qt resources from file resources.py
 from .resources import *
-# Import the code for the dialog
-from .code import *
+from .code import SearchFeaturesDialog, tr
 
 import os.path
 
@@ -150,11 +149,8 @@ class Quick_search:
             # Додаємо додаткове докове вікно до QGIS
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.additional_dock_widget)
 
-            # Змінюємо кнопку "+" на "-" у головному вікні
             self.dlg.open_additional_search_button.setText("-")
         else:
-            # Закриваємо додаткове вікно
             self.additional_dock_widget.close()
             self.additional_dock_widget = None
-            # Змінюємо кнопку "-" на "+" у головному вікні
             self.dlg.open_additional_search_button.setText("+")
