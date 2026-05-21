@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'vendor'))
 import defusedxml.xmlrpc
 defusedxml.xmlrpc.monkey_patch()
 
-import xmlrpc.client
+xmlrpc_client = defusedxml.xmlrpc.xmlrpc_client
 
 # Configuration
 PROTOCOL = 'https'
@@ -39,21 +39,21 @@ def main(parameters, arguments):
         endpoint=ENDPOINT)
     print("Connecting to: %s" % hide_password(address))
 
-    server = xmlrpc.client.ServerProxy(address, verbose=VERBOSE)
+    server = xmlrpc_client.ServerProxy(address, verbose=VERBOSE)
 
     try:
         with open(arguments[0], 'rb') as handle:
             plugin_id, version_id = server.plugin.upload(
-                xmlrpc.client.Binary(handle.read()))
+                xmlrpc_client.Binary(handle.read()))
         print("Plugin ID: %s" % plugin_id)
         print("Version ID: %s" % version_id)
-    except xmlrpc.client.ProtocolError as err:
+    except xmlrpc_client.ProtocolError as err:
         print("A protocol error occurred")
         print("URL: %s" % hide_password(err.url, 0))
         print("HTTP/HTTPS headers: %s" % err.headers)
         print("Error code: %d" % err.errcode)
         print("Error message: %s" % err.errmsg)
-    except xmlrpc.client.Fault as err:
+    except xmlrpc_client.Fault as err:
         print("A fault occurred")
         print("Fault code: %d" % err.faultCode)
         print("Fault string: %s" % err.faultString)
